@@ -356,6 +356,8 @@ void *mm_malloc(size_t size){
 	//whether the tree has been fully searched
 	int finished = F;
 	
+	int size = ALIGN(size) + HEADSIZE;
+
 	while(!finished){
 		int s = mm_getsize(block);
 		//if the block we're looking at is equal to the request,
@@ -390,7 +392,7 @@ void *mm_malloc(size_t size){
 	
 	//if the block chosen is exactly equal to the requested size
 	//just change the "allocated? y/n" to "yes" and remove from "freetrees"
-	if (mm_getsize(min) == size){
+	if (mm_getsize(min) == (size){
 		FREE(min) = T;
 		mm_size_free_remove(min);
 		mm_loc_free_remove(min);
@@ -474,7 +476,7 @@ void *mm_malloc(size_t size){
 			FREE(n) = T;
 			mm_size_free_remove(n);
 			mm_loc_free_remove(n);
-			return n;
+			return DECAPITATE(n);
 	}
 }
 
