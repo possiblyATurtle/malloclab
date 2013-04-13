@@ -140,7 +140,7 @@ static int ** mm_getChild(int **p, int t, int c){
 }
 
 static int **mm_getNext(int **head){
- return mm_getChild(head, SZ, N);
+ return (int **) mm_getChild(head, SZ, N);
 }
 
 static void mm_push(int **p, int **head){
@@ -151,7 +151,7 @@ static void mm_push(int **p, int **head){
 
 static int * mm_pop(int **head){
 	//removes the top block from a linear list (returns NULL if head is only block) (used to allocate blocks in size tree)
-	return mm_getNext(head)
+	return mm_getNext(head);
 }
 
 static int * mm_loc_free_add(int *p){ //Accepts a pointer to free memory to be added to the location-based tree
