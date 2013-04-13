@@ -108,27 +108,27 @@ static int mm_getsize(int *p){
 //p is the block pointer, t is 0 for size tree, 1 for loc tree, 
 //c is 0 for left, 1 for right, (probably should define these as consts)
 //and 2 for linear list next
-static int * mm_getChild(int **p, int t, int c){
+static int ** mm_getChild(int **p, int t, int c){
 	//uses header structure to get child in either tree
-	if(t = 0){
-		if(c = 0){
-			return *(p + INTSIZE + 2*INTPTRSIZE);
+	if(t = SZ){
+		if(c = L){
+			return (int**) (p + INTSIZE + 2*INTPTRSIZE);
 		}
-		else if (c = 1){
-			return *(p + INTSIZE + 3*);
+		else if (c = R){
+			return (int**) (p + INTSIZE + 3*INTPTRSIZE);
 		}
-		else if (c = 2){
-			return *(p + INTSIZE + 4*INTPTRSIZE);
+		else if (c = N){
+			return (int**) (p + INTSIZE + 4*INTPTRSIZE);
 		}
 		else
 			return NULL;
 	}
-	else if(t = 1){
-		if(c = 0){
-			return *(p + INTSIZE);
+	else if(t = LC){
+		if(c = L){
+			return (int**) (p + INTSIZE);
 		}
-		else if (c = 1){
-			return *(p + INTSIZE + INTPTRSIZE);
+		else if (c = R){
+			return (int**) (p + INTSIZE + INTPTRSIZE);
 		}
 		else
 			return NULL;
@@ -138,22 +138,26 @@ static int * mm_getChild(int **p, int t, int c){
 
 }
 
+static int **mm_getNext(int **head){
+ return mm_getChild(head, SZ, N);
+}
+
 static void mm_push(int **p, int **head){
 	//pushes a block to the top of a linear list (used to put block in size tree)
-	getNext(p)=getNext(head);
-	getNext(head)=p;
+	*mm_getNext(p)=*mm_getNext(head);
+	*mm_getNext(head)=p;
 }
 
 static int * mm_pop(int **head){
 	//removes the top block from a linear list (returns NULL if head is only block) (used to allocate blocks in size tree)
-	return getNext(head)
+	return mm_getNext(head)
 }
 
 static int * mm_loc_free_add(int *p){ //Accepts a pointer to free memory to be added to the location-based tree
 	int** temp = loc_head; //head of trees
 	while(p != temp){ //While p is not equal to temp
 		if(p>temp){ //if p is greater than temp
-			int *rtchld = mm_getChild(temp,1,1);
+			int *rtchld = *mm_getChild(temp,LC,1);
 			if(rtchld==NULL){ //if it's the end of the tree add temp to it and break out of the loop
 				rtchld=p;
 				return temp; //returns temp to check if it is adjacent
@@ -162,7 +166,7 @@ static int * mm_loc_free_add(int *p){ //Accepts a pointer to free memory to be a
 				temp=rtchld; //otherwise temp = pointer at index of loc_right_child pointer
 		}
 		else{ //else (p is less than temp
-			int *lchld = mm_getChild(temp,1,0)
+			int *lchld = *mm_getChild(temp,LC,0)
 			if(lchld==NULL){ //if it's the end of the tree add temp to it and break out of the loop
 				lchld=p;
 				return temp; //returns temp to check if it is adjacent
@@ -182,7 +186,7 @@ static int mm_size_free_add(int **p){
 	while(p != temp){ //While p is not equal to temp
 		tsize = mm_getsize(t);
 		if(psize>tsize){ //if p size is greater than temp size
-			int *rtchld = mm_getChild(temp, 0, 1);
+			int *rtchld = *mm_getChild(temp, SZ, 1);
 			if(rtchld==NULL){ //if it's the end of the tree add temp to it and break out of the loop
 				rtchld=p;
 				return 1; //added right code
@@ -191,7 +195,7 @@ static int mm_size_free_add(int **p){
 				temp=rtchld; //otherwise temp = pointer at index of loc_right_child pointer
 		}
 		else{ //else (p is less than temp
-			int *lchld = mm_getChild(temp, 0, 0);
+			int *lchld = *mm_getChild(temp, SZ, 0);
 			if(lchld==NULL){ //if it's the end of the tree add temp to it and break out of the loop
 				lchld=p;
 				return 0; //added left code
@@ -202,8 +206,8 @@ static int mm_size_free_add(int **p){
 	}
 	//if p size == temp size then add p to the top of the linear list at temp
 	if(psize == tsize){
-		int *pnext = mm_getChild(p, 0, 2);
-		int *tnext = mm_getChild(temp, 0, 2);
+		int *pnext = *mm_getChild(p, SZ, 2);
+		int *tnext = *mm_getChild(temp, SZ, 2);
 		pnext = tnext;
 		tnext=p;
 	}
@@ -213,14 +217,18 @@ static int mm_size_free_add(int **p){
 //use p[s] temp[s] to find next block for each, use p and temp to see which comes first
 static int mm_coalesce_check(int *p, int *temp) {
 	//use p[s] temp[s] to find next block for each, use p and temp to see which comes first
-	int pfirst = (p+getSize(p)==temp); //checks if next block after p is temp
-	int tfirst = (temp+getSize(temp)==p); //checks if next block after temp is p
+	int pfirst = (p+mm_getsize(p)==temp); //checks if next block after p is temp
+	int tfirst = (temp+mm_getsize(temp)==p); //checks if next block after temp is p
 	if(pfirst==1) 
 		return 2;
 	else if(tfirst==1) 
 		return 1;
 	else 
 		return 0;
+}
+
+static void mm_coalesce(int *left, int *right){
+	left[0]+=right[0];
 }
 
 //uses coalesce check, coalesce, mm_size_free_add and mm_loc_free_add to place a block in the list
@@ -250,10 +258,33 @@ static int mm_free_list() //puts a freed block in the list{
 }
 
 
-static int mm_foster(int **head, int **orphanL, int **orphanR){
-	
+*Fosters children after node removal from either tree
+*/
+static int mm_foster(int **head, int **orphanL, int **orphanR, int openside, int treetype){
+	int **temp;
+	if(openside==L){
+		*mm_getChild(head, treetype, openside)=orphanR;
+		temp=orphanR;
+		while((*mm_getChild(temp, treetype, 1-openside))!=NULL){
+			temp=*mm_getChild(temp, treetype, 1-openside);
+		}
+		*mm_getChild(temp, treetype, 1-openside) = orphanL;
+	}
+	else{
+		*mm_getChild(head, treetype, openside)=orphanL;
+		temp=orphanL;
+		while((*mm_getChild(temp, treetype, 1-openside))!=NULL){
+			temp=*mm_getChild(temp, treetype, 1-openside);
+		}
+		*mm_getChild(temp, treetype, 1-openside) = orphanR;
+	}
 }
 
+static int mm_fosterLinear(int **head, int**temp, int openside){
+	*mm_getChild(*mm_getChild(temp, SZ, N), SZ, R)=*mm_getChild(temp, SZ, R);
+	*mm_getChild(*mm_getChild(temp, SZ, N), SZ, L)=*mm_getChild(temp, SZ, L);
+	*mm_getChild(head, SZ, openside)= *mm_getChild(temp, SZ, N)
+}
 
 //removes a block from the size tree due to allocation or size increase from coalescing with another block
 //Must take into account the linear list of duplicate sized blocks
@@ -266,21 +297,30 @@ static int mm_size_free_remove(int **p){
 	while(mm_getsize(p)!=mm_getsize(temp)){ //while we aren't at temp yet
 		if(mm_getsize(p)<mm_getsize(temp)){ //if temp is greater
 			head = temp; //make last temp head
-			temp = getChild(temp, SZ, R); //get right child
+			temp = *mm_getChild(temp, SZ, R); //get right child
 			lr=R; //temp was right child
 		}
 		if(mm_getsize(p)>mm_getsize(temp)){ //if temp is less
 			head = temp; //make last temp head
-			temp = getChild(temp, SZ, L); //get left child
+			temp = *mm_getChild(temp, SZ, L); //get left child
 			lr=L; //temp was left child
 		}
 	}
-	if(lr==L){
-	//deal with orphaned children recursively
+	if(temp!=p){
+		do{
+			head=temp;
+			temp = *mm_getChild(temp, SZ, N);
+		}while(temp!=p);
+		*mm_getChild(head, SZ, N)=*mm_getChild(temp, SZ, N);
 	}
-	else if(lr==R){
-	
+	else if(*mm_getChild(temp, SZ, N)!=NULL){
+		mm_fosterLinear(head, temp, lr);
 	}
+	else
+	{
+		mm_foster(head, mm_getChild(temp, SZ, L), mm_getChild(temp,SZ, R), lr, SZ);
+	}
+
 }
 }
 
@@ -290,25 +330,20 @@ static int mm_loc_free_remove(int **p){
 		int** temp = loc_head;	//location tree
 	int **head;	//current head
 	int lr;	//left or right
-	while(mm_getsize(p)!=mm_getsize(temp)){	//while we aren't at temp yet
-		if(mm_getsize(p)<mm_getsize(temp)){	//if temp is greater
+	while(p!=temp){	//while we aren't at temp yet
+		if(p<temp){	//if temp is greater
 			head = temp;	//make last temp head
-			temp = getChild(temp, SZ, R);	//get right child
+			temp = *mm_Child(temp, SZ, R);	//get right child
 			lr=R;	//temp was right child
 		}
-		if(mm_getsize(p)>mm_getsize(temp)){ //if temp is less
+		if(p>temp){ //if temp is less
 			head = temp;	//make last temp head
-			temp = getChild(temp, SZ, L);	//get left child
+			temp = *mm_getChild(temp, SZ, L);	//get left child
 			lr=L;	//temp was left child
 		}
 	}
 	
-	if(lr==L){
-		foster(head, getchild(head, SZ, L), 
-	}
-	else if(lr==R){
-	
-	}
+	mm_foster(head, getchild(temp, LC, L), getchild(temp,LC, R), lr, LC);
 }
 
 /*
@@ -489,7 +524,8 @@ void *mm_malloc(size_t size){
  * mm_free - Freeing a block does nothing.
  */
 void mm_free(void *ptr){
-
+	mm_free_list(FRANKENSTEIN(ptr));
+	//set free flag here
 }
 
 /*
