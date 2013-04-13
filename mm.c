@@ -46,7 +46,7 @@ team_t team = {
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
 //header is as follows: SIZE (size_t) | loc_left (int *) | loc_right (int *) | size_left (int *) | size_right (int *) | size_next (int *) | FREE (int) | (data block starts here)
-#define HEADSIZE (SIZE_T_SIZE+POINTERSIZE*5+sizeof(int))
+#define HEADSIZE (ALIGN(SIZE_T_SIZE+POINTERSIZE*5+sizeof(int)))
 
 //removes header
 #define DECAPITATE(ptr)  (ptr+HEADSIZE) 
