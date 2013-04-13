@@ -46,16 +46,16 @@ team_t team = {
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
 //header is as follows: SIZE (size_t) | loc_left (int *) | loc_right (int *) | size_left (int *) | size_right (int *) | size_next (int *) | FREE (int) | (data block starts here)
-#define HEADSIZE (sizeof(size_t)+POINTERSIZE*5+sizeof(int))
+#define HEADSIZE (SIZE_T_SIZE+POINTERSIZE*5+sizeof(int))
 
 //removes header
 #define DECAPITATE(ptr)  (ptr+HEADSIZE) 
 
 #define FRANKENSTEIN(ptr) (ptr-HEADSIZE) //I AM PLAY GOD
 
-#define FREE(ptr) (*(ptr+(POINTERSIZE*2+sizeof(size_t))))
+#define FREE(ptr) (*(ptr+(POINTERSIZE*5+SIZE_T_SIZE)))
 
-#define SIZE(ptr) (*(ptr+(POINTERSIZE*2)))
+#define SIZE(ptr) (*(ptr))
 #define NEXT(ptr) (ptr+POINTERSIZE)
 #define PREV(ptr) (ptr)
 
@@ -102,8 +102,8 @@ static void * extend_heap(size_t words){
 }
 
 //uses header structure to get size of a block
-static int mm_getsize(int *p){
-	return p[0];
+static int mm_getsize(size_t *p){
+	return (int) p[0];
 }
 
 //p is the block pointer, t is 0 for size tree, 1 for loc tree, 
