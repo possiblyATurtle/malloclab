@@ -526,9 +526,10 @@ void *mm_realloc(void *ptr, size_t size){
 		return bp;
 	}
 	
-	else 
+	else{
 		bp = mm_malloc(size);
 		copy payload from ptr to bp
 		free(ptr);
 		return bp;
-		
+	}
+}
