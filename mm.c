@@ -356,7 +356,7 @@ void *mm_malloc(size_t size){
 	//whether the tree has been fully searched
 	int finished = F;
 	
-	int size = ALIGN(size) + HEADSIZE;
+	int size = ALIGN(size + HEADSIZE);
 
 	while(!finished){
 		int s = mm_getsize(block);
