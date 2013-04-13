@@ -505,7 +505,8 @@ void *mm_realloc(void *ptr, size_t size){
 		if ((SIZE(next)+SIZE(ptr)) >= size)
 			next block becomes part of ptr, pad payload section where needed
 		else if(&next == &last){
-			extend heap
+			extend_heap(size - SIZE(next))
+			coalesce();
 			merge with next
 			merge next with ptr
 			pad payload section
@@ -524,7 +525,9 @@ void *mm_realloc(void *ptr, size_t size){
 	
 	else{
 		bp = mm_malloc(size);
-		copy payload from ptr to bp
+		int *payload = DECAPITATE(ptr);
+		int *copyto = DECAPITATE(bp)
+		*copyto = *payload;
 		free(ptr);
 		return bp;
 	}
