@@ -108,27 +108,27 @@ static int mm_getsize(int *p){
 //p is the block pointer, t is 0 for size tree, 1 for loc tree, 
 //c is 0 for left, 1 for right, (probably should define these as consts)
 //and 2 for linear list next
-static int * mm_getChild(int **p, int t, int c){
+static int ** mm_getChild(int **p, int t, int c){
 	//uses header structure to get child in either tree
-	if(t = 0){
-		if(c = 0){
-			return *(p + INTSIZE + 2*INTPTRSIZE);
+	if(t = SZ){
+		if(c = L){
+			return (int**) (p + INTSIZE + 2*INTPTRSIZE);
 		}
-		else if (c = 1){
-			return *(p + INTSIZE + 3*);
+		else if (c = R){
+			return (int**) (p + INTSIZE + 3*INTPTRSIZE);
 		}
-		else if (c = 2){
-			return *(p + INTSIZE + 4*INTPTRSIZE);
+		else if (c = N){
+			return (int**) (p + INTSIZE + 4*INTPTRSIZE);
 		}
 		else
 			return NULL;
 	}
-	else if(t = 1){
-		if(c = 0){
-			return *(p + INTSIZE);
+	else if(t = LC){
+		if(c = L){
+			return (int**) (p + INTSIZE);
 		}
-		else if (c = 1){
-			return *(p + INTSIZE + INTPTRSIZE);
+		else if (c = R){
+			return (int**) (p + INTSIZE + INTPTRSIZE);
 		}
 		else
 			return NULL;
