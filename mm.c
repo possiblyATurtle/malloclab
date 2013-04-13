@@ -113,23 +113,23 @@ static int ** mm_getChild(int **p, int t, int c){
 	//uses header structure to get child in either tree
 	if(t = SZ){
 		if(c = L){
-			return (int**) (p + INTSIZE + 2*INTPTRSIZE);
+			return (int**) (p + SIZE_T_SIZE + 2*INTPTRSIZE);
 		}
 		else if (c = R){
-			return (int**) (p + INTSIZE + 3*INTPTRSIZE);
+			return (int**) (p + SIZE_T_SIZE + 3*INTPTRSIZE);
 		}
 		else if (c = N){
-			return (int**) (p + INTSIZE + 4*INTPTRSIZE);
+			return (int**) (p + SIZE_T_SIZE + 4*INTPTRSIZE);
 		}
 		else
 			return NULL;
 	}
 	else if(t = LC){
 		if(c = L){
-			return (int**) (p + INTSIZE);
+			return (int**) (p + SIZE_T_SIZE);
 		}
 		else if (c = R){
-			return (int**) (p + INTSIZE + INTPTRSIZE);
+			return (int**) (p + SIZE_T_SIZE + INTPTRSIZE);
 		}
 		else
 			return NULL;
@@ -528,7 +528,7 @@ void *mm_malloc(size_t size){
  */
 void mm_free(void *ptr){
 	mm_free_list(FRANKENSTEIN(ptr));
-	//set free flag here
+	FREE(ptr)=1;
 }
 
 /*
