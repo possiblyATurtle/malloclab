@@ -45,9 +45,10 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
-#define HEADSIZE (POINTERSIZE*2+sizeof(size_t)+sizeof(int))
+//header is as follows: SIZE (size_t) | loc_left (int *) | loc_right (int *) | size_left (int *) | size_right (int *) | size_next (int *) | FREE (int) | (data block starts here)
+#define HEADSIZE (sizeof(size_t)+POINTERSIZE*5+sizeof(int))
 
-//Header contains 2 pointers, previous and next, size and free
+//removes header
 #define DECAPITATE(ptr)  (ptr+HEADSIZE) 
 
 #define FRANKENSTEIN(ptr) (ptr-HEADSIZE) //I AM PLAY GOD
