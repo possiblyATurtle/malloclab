@@ -39,16 +39,17 @@ team_t team = {
 
 #define SIZE_T_SIZE (ALIGN(sizeof(size_t)))
 
-#define HEADSIZE (POINTERSIZE*2+sizeof(size_t)+sizeof(int))
+//header is as follows: SIZE (size_t) | loc_left (int *) | loc_right (int *) | size_left (int *) | size_right (int *) | size_next (int *) | FREE (int) | (data block starts here)
+#define HEADSIZE (ALIGN(SIZE_T_SIZE+POINTERSIZE*5+sizeof(int)))
 
-//Header contains 2 pointers, previous and next, size and free
+//removes header
 #define DECAPITATE(ptr)  (ptr+HEADSIZE) 
 
 #define FRANKENSTEIN(ptr) (ptr-HEADSIZE) //I AM PLAY GOD
 
-#define FREE(ptr) (*(ptr+(POINTERSIZE*2+sizeof(size_t))))
+#define FREE(ptr) (*(ptr+(POINTERSIZE*5+SIZE_T_SIZE)))
 
-#define SIZE(ptr) (*(ptr+(POINTERSIZE*2)))
+#define SIZE(ptr) (*(ptr))
 #define NEXT(ptr) (ptr+POINTERSIZE)
 #define PREV(ptr) (ptr)
 
@@ -95,8 +96,8 @@ static void * extend_heap(size_t words){
 }
 
 //uses header structure to get size of a block
-static int mm_getsize(int *p){
-	return p[0];
+static int mm_getsize(size_t *p){
+	return (int) p[0];
 }
 
 //p is the block pointer, t is 0 for size tree, 1 for loc tree, 
@@ -106,6 +107,7 @@ static int ** mm_getChild(int **p, int t, int c){
 	//uses header structure to get child in either tree
 	if(t = SZ){
 		if(c = L){
+<<<<<<< HEAD
 			return (int**) (p + INTSIZE + 2*INTPTRSIZE);
 		}
 		else if (c = R){
@@ -113,16 +115,32 @@ static int ** mm_getChild(int **p, int t, int c){
 		}
 		else if (c = N){
 			return (int**) (p + INTSIZE + 4*INTPTRSIZE);
+=======
+			return (int**) (p + SIZE_T_SIZE + 2*INTPTRSIZE);
+		}
+		else if (c = R){
+			return (int**) (p + SIZE_T_SIZE + 3*INTPTRSIZE);
+		}
+		else if (c = N){
+			return (int**) (p + SIZE_T_SIZE + 4*INTPTRSIZE);
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 		}
 		else
 			return NULL;
 	}
 	else if(t = LC){
 		if(c = L){
+<<<<<<< HEAD
 			return (int**) (p + INTSIZE);
 		}
 		else if (c = R){
 			return (int**) (p + INTSIZE + INTPTRSIZE);
+=======
+			return (int**) (p + SIZE_T_SIZE);
+		}
+		else if (c = R){
+			return (int**) (p + SIZE_T_SIZE + INTPTRSIZE);
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 		}
 		else
 			return NULL;
@@ -133,7 +151,11 @@ static int ** mm_getChild(int **p, int t, int c){
 }
 
 static int **mm_getNext(int **head){
+<<<<<<< HEAD
  return mm_getChild(head, SZ, N);
+=======
+ return (int **) mm_getChild(head, SZ, N);
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 }
 
 static void mm_push(int **p, int **head){
@@ -144,7 +166,11 @@ static void mm_push(int **p, int **head){
 
 static int * mm_pop(int **head){
 	//removes the top block from a linear list (returns NULL if head is only block) (used to allocate blocks in size tree)
+<<<<<<< HEAD
 	return mm_getNext(head)
+=======
+	return mm_getNext(head);
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 }
 
 static int * mm_loc_free_add(int *p){ //Accepts a pointer to free memory to be added to the location-based tree
@@ -226,19 +252,19 @@ static void mm_coalesce(int *left, int *right){
 }
 
 //uses coalesce check, coalesce, mm_size_free_add and mm_loc_free_add to place a block in the list
-static int mm_free_list() //puts a freed block in the list{
+static int mm_free_list(int **p) //puts a freed block in the list{
 //uses coalesce check, coalesce, mm_size_free_add and mm_loc_free_add to place a block in the list
 	int **temp = mm_loc_free_add(p); //node above added block
-	int coalesce = coalesce_check(p, temp); //checks if it and the node next to it need to be coalesced, and how
+	int coalesce = mm_coalesce_check(p, temp); //checks if it and the node next to it need to be coalesced, and how
 	if(coalesce == 1){ //coelesces p to temp
 		mm_size_free_remove(temp); //remove temp from size tree
 		mm_loc_free_remove(p); //remove p from loc tree
-		coalesce(temp, p); //coalesces p to temp
+		mm_coalesce(temp, p); //coalesces p to temp
 		mm_size_free_add(temp); //readds temp to size tree
 		return 0; //returns coalesced p (therefore not added) code
 	}
 	else if(coalesce == 2){ //coalesces temp to p
-		coalesce(p, temp); //coalesces temp to p
+		mm_coalesce(p, temp); //coalesces temp to p
 		sizeadd = mm_size_free_add(p); //adds p to size tree
 		mm_size_free_remove(temp); //removes temp from size tree
 		mm_loc_free_remove(temp); //removes temp from loc tree
@@ -252,6 +278,10 @@ static int mm_free_list() //puts a freed block in the list{
 }
 
 
+<<<<<<< HEAD
+=======
+/*
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 *Fosters children after node removal from either tree
 */
 static int mm_foster(int **head, int **orphanL, int **orphanR, int openside, int treetype){
@@ -272,6 +302,15 @@ static int mm_foster(int **head, int **orphanL, int **orphanR, int openside, int
 		}
 		*mm_getChild(temp, treetype, 1-openside) = orphanR;
 	}
+<<<<<<< HEAD
+=======
+}
+
+static int mm_fosterLinear(int **head, int**temp, int openside){
+	*mm_getChild(*mm_getChild(temp, SZ, N), SZ, R)=*mm_getChild(temp, SZ, R);
+	*mm_getChild(*mm_getChild(temp, SZ, N), SZ, L)=*mm_getChild(temp, SZ, L);
+	*mm_getChild(head, SZ, openside)= *mm_getChild(temp, SZ, N)
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 }
 
 static int mm_fosterLinear(int **head, int**temp, int openside){
@@ -309,11 +348,19 @@ static int mm_size_free_remove(int **p){
 	}
 	else if(*mm_getChild(temp, SZ, N)!=NULL){
 		mm_fosterLinear(head, temp, lr);
+<<<<<<< HEAD
 	}
 	else
 	{
 		mm_foster(head, mm_getChild(temp, SZ, L), mm_getChild(temp,SZ, R), lr, SZ);
 	}
+=======
+	}
+	else
+	{
+		mm_foster(head, mm_getChild(temp, SZ, L), mm_getChild(temp,SZ, R), lr, SZ);
+	}
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 
 }
 }
@@ -521,7 +568,11 @@ void *mm_malloc(size_t size){
  */
 void mm_free(void *ptr){
 	mm_free_list(FRANKENSTEIN(ptr));
+<<<<<<< HEAD
 	//set free flag here
+=======
+	FREE(ptr)=1;
+>>>>>>> f4eb277101aad741f791e0c3289b1b8da37120d6
 }
 
 /*
